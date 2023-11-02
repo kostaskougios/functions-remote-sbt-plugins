@@ -9,8 +9,8 @@ object FunctionsRemotePlugin extends AutoPlugin {
   override def trigger  = noTrigger // Not automatically enabled
 
   object autoImport {
-    object functionsRemoteReceiver {
-      val exports               = settingKey[Seq[String]]("Add all exports that you need receivers to be generated")
+    object functionsRemoteCaller {
+      val exports               = settingKey[Seq[String]]("Add all exports that you need callers to be generated")
       val avroSerialization     = settingKey[Boolean]("Set to true to generate Avro serializers")
       val jsonSerialization     = settingKey[Boolean]("Set to true to generate Json serializers")
       val classloaderTransport  = settingKey[Boolean]("Set to true to generate a transport that uses an isolated class loader to load and execute functions")
@@ -23,37 +23,37 @@ object FunctionsRemotePlugin extends AutoPlugin {
   import autoImport.*
 
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
-    functionsRemoteReceiver.exports               := Nil,
-    functionsRemoteReceiver.avroSerialization     := false,
-    functionsRemoteReceiver.jsonSerialization     := false,
-    functionsRemoteReceiver.classloaderTransport  := false,
-    functionsRemoteReceiver.http4sClientTransport := false,
+    functionsRemoteCaller.exports               := Nil,
+    functionsRemoteCaller.avroSerialization     := false,
+    functionsRemoteCaller.jsonSerialization     := false,
+    functionsRemoteCaller.classloaderTransport  := false,
+    functionsRemoteCaller.http4sClientTransport := false,
     Compile / unmanagedSourceDirectories ++= {
       val base = baseDirectory.value
-      if (functionsRemoteReceiver.exports.value.nonEmpty)
+      if (functionsRemoteCaller.exports.value.nonEmpty)
         Seq(base / "src" / "main" / "functions-remote-generated")
       else Seq.empty
     },
     cleanFiles += baseDirectory.value / "src" / "main" / "functions-remote-generated",
-    functionsRemoteGenerate                       := {
+    functionsRemoteGenerate                     := {
       val executor = FunctionsRemoteIsolatedExecutor.Instance
       val base     = baseDirectory.value
       val s        = streams.value
-      for (exp <- functionsRemoteReceiver.exports.value) {
+      for (exp <- functionsRemoteCaller.exports.value) {
         s.log.info(s"Generating receiver for $exp")
         executor.generateCaller(
           SbtCallerParams(
-            avroSerialization = functionsRemoteReceiver.avroSerialization.value,
-            jsonSerialization = functionsRemoteReceiver.jsonSerialization.value,
-            classloaderTransport = functionsRemoteReceiver.classloaderTransport.value,
-            http4sClientTransport = functionsRemoteReceiver.http4sClientTransport.value,
+            avroSerialization = functionsRemoteCaller.avroSerialization.value,
+            jsonSerialization = functionsRemoteCaller.jsonSerialization.value,
+            classloaderTransport = functionsRemoteCaller.classloaderTransport.value,
+            http4sClientTransport = functionsRemoteCaller.http4sClientTransport.value,
             targetDir = (base / "src" / "main" / "functions-remote-generated").getAbsolutePath,
             exportDependency = exp
           )
         )
       }
     },
-    functionsRemoteCreateDependenciesFile         := {
+    functionsRemoteCreateDependenciesFile       := {
       val s        = streams.value
       val org      = organization.value
       val sv       = scalaBinaryVersion.value
@@ -65,9 +65,9 @@ object FunctionsRemotePlugin extends AutoPlugin {
       functions.coursier.Resolver.createDependenciesForArtifact(artifact)
     },
     // compile should generate code where appropriate
-    Compile / compile                             := (Compile / compile dependsOn functionsRemoteGenerate).value,
+    Compile / compile                           := (Compile / compile dependsOn functionsRemoteGenerate).value,
     // hook into publishLocal so that after publishing we create functions-remote dependency file
-    publishLocal                                  := Def.taskDyn {
+    publishLocal                                := Def.taskDyn {
       val s  = streams.value
       val pl = publishLocal.value
       Def.task {

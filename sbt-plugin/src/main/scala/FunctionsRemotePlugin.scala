@@ -1,3 +1,4 @@
+import functions.proxygenerator.sbt.SbtCallerParams
 import functions.remote.sbt.FunctionsRemoteIsolatedExecutor
 import sbt.*
 import sbt.Keys.*
@@ -25,7 +26,16 @@ object FunctionsRemotePlugin extends AutoPlugin {
     },
     functionsRemoteGenerateCaller         := {
       val executor = FunctionsRemoteIsolatedExecutor.Instance
-      executor.runGenerator()
+      executor.generateCaller(
+        SbtCallerParams(
+          false,
+          false,
+          false,
+          false,
+          "/tmp",
+          ""
+        )
+      )
     },
     functionsRemoteCreateDependenciesFile := {
       val s        = streams.value
@@ -44,7 +54,7 @@ object FunctionsRemotePlugin extends AutoPlugin {
       val pl = publishLocal.value
       Def.task {
         s.log.info(pl.toString)
-        // Run your task actions here after publishLocal has completed
+        // Run the task actions here after publishLocal has completed
         functionsRemoteCreateDependenciesFile.value
         pl
       }

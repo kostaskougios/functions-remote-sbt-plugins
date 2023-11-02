@@ -1,3 +1,4 @@
+import functions.remote.sbt.FunctionsRemoteIsolatedExecutor
 import sbt.*
 import sbt.Keys.*
 
@@ -8,7 +9,8 @@ object FunctionsRemotePlugin extends AutoPlugin {
 
   object autoImport {
     val functionsRemoteReceiver               = settingKey[Boolean]("Set to true to generate Receiver classes")
-    val functionsRemoteCreateDependenciesFile = taskKey[Unit]("say hello")
+    val functionsRemoteCreateDependenciesFile = taskKey[Unit]("Creates dependency text file under ~/.functions-remote")
+    val functionsRemoteGenerateCaller         = taskKey[Unit]("Generates caller classes")
   }
 
   import autoImport.*
@@ -20,6 +22,10 @@ object FunctionsRemotePlugin extends AutoPlugin {
       if (functionsRemoteReceiver.value)
         Seq(base / "src" / "main" / "functions-remote-generated")
       else Seq.empty
+    },
+    functionsRemoteGenerateCaller         := {
+      val executor = FunctionsRemoteIsolatedExecutor.Instance
+      executor.runGenerator()
     },
     functionsRemoteCreateDependenciesFile := {
       val s        = streams.value

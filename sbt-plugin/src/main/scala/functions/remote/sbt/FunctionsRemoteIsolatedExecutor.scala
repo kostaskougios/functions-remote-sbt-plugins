@@ -25,3 +25,7 @@ class FunctionsRemoteIsolatedExecutor(coursierResolver: CoursierResolver) {
     println(result)
   }
 }
+
+object FunctionsRemoteIsolatedExecutor {
+  val Instance = new FunctionsRemoteIsolatedExecutor(new CoursierResolver())
+}

@@ -8,8 +8,6 @@ import java.io.File
 /** see https://get-coursier.io/docs/api
   */
 class CoursierResolver(functionsHome: String = FunctionsHome) {
-  println(s"functions-remote config dir is $functionsHome")
-
   def createDependenciesForArtifacts(artifacts: Seq[String]): Seq[String] = {
     val targetDir = new File(functionsHome + "/local/dependencies")
     targetDir.mkdirs()

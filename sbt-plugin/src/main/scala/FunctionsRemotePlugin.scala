@@ -9,35 +9,45 @@ object FunctionsRemotePlugin extends AutoPlugin {
   override def trigger  = noTrigger // Not automatically enabled
 
   object autoImport {
-    val functionsRemoteReceiver               = settingKey[Boolean]("Set to true to generate Receiver classes")
+    object functionsRemoteReceiver {
+      val exports           = settingKey[Seq[String]]("Add all exports that you need receivers to be generated")
+      val avroSerialization = settingKey[Boolean]("Set to true to generate Avro serializers classes")
+    }
     val functionsRemoteCreateDependenciesFile = taskKey[Unit]("Creates dependency text file under ~/.functions-remote")
-    val functionsRemoteGenerateCaller         = taskKey[Unit]("Generates caller classes")
+    val functionsRemoteGenerate = taskKey[Unit]("Generates caller classes")
   }
 
   import autoImport.*
 
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
-    functionsRemoteReceiver               := false,
+    functionsRemoteReceiver.exports           := Nil,
+    functionsRemoteReceiver.avroSerialization := false,
     Compile / unmanagedSourceDirectories ++= {
       val base = baseDirectory.value
-      if (functionsRemoteReceiver.value)
+      if (functionsRemoteReceiver.exports.value.nonEmpty)
         Seq(base / "src" / "main" / "functions-remote-generated")
       else Seq.empty
     },
-    functionsRemoteGenerateCaller         := {
+    cleanFiles += baseDirectory.value / "src" / "main" / "functions-remote-generated",
+    functionsRemoteGenerate                   := {
       val executor = FunctionsRemoteIsolatedExecutor.Instance
-      executor.generateCaller(
-        SbtCallerParams(
-          false,
-          false,
-          false,
-          false,
-          "/tmp",
-          ""
+      val base     = baseDirectory.value
+      val s        = streams.value
+      for (exp <- functionsRemoteReceiver.exports.value) {
+        s.log.info(s"Generating receiver for $exp")
+        executor.generateCaller(
+          SbtCallerParams(
+            functionsRemoteReceiver.avroSerialization.value,
+            false,
+            false,
+            false,
+            (base / "src" / "main" / "functions-remote-generated").getAbsolutePath,
+            exp
+          )
         )
-      )
+      }
     },
-    functionsRemoteCreateDependenciesFile := {
+    functionsRemoteCreateDependenciesFile     := {
       val s        = streams.value
       val org      = organization.value
       val sv       = scalaBinaryVersion.value
@@ -48,8 +58,10 @@ object FunctionsRemotePlugin extends AutoPlugin {
 
       functions.coursier.Resolver.createDependenciesForArtifact(artifact)
     },
+    // compile should generate code where appropriate
+    Compile / compile                         := (Compile / compile dependsOn functionsRemoteGenerate).value,
     // hook into publishLocal so that after publishing we create functions-remote dependency file
-    publishLocal                          := Def.taskDyn {
+    publishLocal                              := Def.taskDyn {
       val s  = streams.value
       val pl = publishLocal.value
       Def.task {

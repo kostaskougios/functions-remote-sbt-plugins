@@ -11,7 +11,6 @@ import java.net.URLClassLoader
 class FunctionsRemoteIsolatedExecutor(coursierResolver: CoursierResolver) {
   def generateCaller(p: SbtCallerParams): String =
     isolatedLoadAndApply[String](
-      Artifacts.FunctionsRemoteGeneratorArtifact,
       "functions.proxygenerator.sbt.SbtCaller",
       toByteArray(p)
     )
@@ -24,12 +23,15 @@ class FunctionsRemoteIsolatedExecutor(coursierResolver: CoursierResolver) {
     bos.toByteArray
   }
 
-  private def isolatedLoadAndApply[R](dependency: String, className: String, data: Array[Byte]) = {
-    val files = coursierResolver.resolveDependency(dependency)
-    val cl    = new URLClassLoader(files.map(_.toURI.toURL).toArray, null)
-    ClassLoaderUtils.withThreadContextClassLoader(cl) {
+  private lazy val generatorClassLoader                                     = {
+    val files = coursierResolver.resolveDependency(Artifacts.FunctionsRemoteGeneratorArtifact)
+    new URLClassLoader(files.map(_.toURI.toURL).toArray, null)
+  }
+  private def isolatedLoadAndApply[R](className: String, data: Array[Byte]) = {
+    ClassLoaderUtils.withThreadContextClassLoader(generatorClassLoader) {
       val sbtCaller =
-        cl.loadClass(className)
+        generatorClassLoader
+          .loadClass(className)
           .getDeclaredConstructor()
           .newInstance()
           .asInstanceOf[java.util.function.Function[Array[Byte], R]]

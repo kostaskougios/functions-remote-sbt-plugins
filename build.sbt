@@ -6,12 +6,14 @@ name := "functions-remote-sbt-plugins"
 
 ThisBuild / scalaVersion := "2.12.18"
 
-val Coursier  = "io.get-coursier" %% "coursier"  % "2.1.7"
-val ScalaTest = "org.scalatest"   %% "scalatest" % "3.2.15" % Test
+val Coursier  = "io.get-coursier"     %% "coursier"    % "2.1.7"
+val Avro4s    = "com.sksamuel.avro4s" %% "avro4s-core" % "4.1.1"
+val ScalaTest = "org.scalatest"       %% "scalatest"   % "3.2.15" % Test
 
 lazy val `sbt-plugin` = project
   .settings(
-    pluginCrossBuild / sbtVersion := "1.2.8"
+    pluginCrossBuild / sbtVersion := "1.2.8",
+    libraryDependencies ++= Seq(ScalaTest, Avro4s)
   )
   .enablePlugins(SbtPlugin)
   .dependsOn(coursier)

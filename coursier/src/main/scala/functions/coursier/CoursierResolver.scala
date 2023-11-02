@@ -14,13 +14,14 @@ class CoursierResolver(functionsHome: String = FunctionsHome) {
     val targetDir = new File(functionsHome + "/local/dependencies")
     targetDir.mkdirs()
     for (artifact <- artifacts) yield {
-      val d      = toDependency(artifact)
-      val r      = resolve(d)
+      val r      = resolveDependency(artifact)
       val output = r.mkString("\n")
       FileUtils.writeTextFile(targetDir, s"$artifact.classpath", output)
       s"$targetDir/$artifact.classpath"
     }
   }
+
+  def resolveDependency(dependency: String): Seq[File] = resolve(toDependency(dependency))
 
   private def resolve(dependency: Dependency) = Fetch()
     .addDependencies(dependency)

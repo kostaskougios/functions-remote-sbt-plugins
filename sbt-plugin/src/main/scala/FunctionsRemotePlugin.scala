@@ -65,17 +65,17 @@ object FunctionsRemotePlugin extends AutoPlugin {
       functions.coursier.Resolver.createDependenciesForArtifact(artifact)
     },
     // compile should generate code where appropriate
-    Compile / compile                           := (Compile / compile dependsOn functionsRemoteGenerate).value,
+    Compile / compile                           := (Compile / compile dependsOn functionsRemoteGenerate).value
     // hook into publishLocal so that after publishing we create functions-remote dependency file
-    publishLocal                                := Def.taskDyn {
-      val s  = streams.value
-      val pl = publishLocal.value
-      Def.task {
-        s.log.info(pl.toString)
-        // Run the task actions here after publishLocal has completed
-        functionsRemoteCreateDependenciesFile.value
-        pl
-      }
-    }.value
+//    publishLocal                                := Def.taskDyn {
+//      val s  = streams.value
+//      val pl = publishLocal.value
+//      Def.task {
+//        s.log.info(pl.toString)
+//        // Run the task actions here after publishLocal has completed
+//        functionsRemoteCreateDependenciesFile.value
+//        pl
+//      }
+//    }.value
   )
 }

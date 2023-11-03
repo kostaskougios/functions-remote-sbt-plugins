@@ -9,11 +9,13 @@ import org.apache.commons.io.output.ByteArrayOutputStream
 import java.net.URLClassLoader
 
 class FunctionsRemoteIsolatedExecutor(coursierResolver: CoursierResolver) {
-  def generateCaller(p: SbtCallerParams): String =
+  def generateCaller(p: SbtCallerParams): String = {
+    coursierResolver.createDependenciesForArtifacts(Seq(p.exportDependency))
     isolatedLoadAndApply[String](
       "functions.proxygenerator.sbt.SbtCaller",
       toByteArray(p)
     )
+  }
 
   private def toByteArray[A: Encoder](a: A) = {
     val bos = new ByteArrayOutputStream

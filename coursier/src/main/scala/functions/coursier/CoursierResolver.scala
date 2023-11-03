@@ -9,14 +9,16 @@ import java.io.File
   */
 class CoursierResolver(functionsHome: String = FunctionsHome) {
   def createDependenciesForArtifacts(artifacts: Seq[String]): Seq[String] = {
-    val targetDir = new File(functionsHome + "/local/dependencies")
-    targetDir.mkdirs()
-    for (artifact <- artifacts) yield {
-      val r      = resolveDependency(artifact)
-      val output = r.mkString("\n")
-      FileUtils.writeTextFile(targetDir, s"$artifact.classpath", output)
-      s"$targetDir/$artifact.classpath"
-    }
+    if (artifacts.nonEmpty) {
+      val targetDir = new File(functionsHome + "/local/dependencies")
+      targetDir.mkdirs()
+      for (artifact <- artifacts) yield {
+        val r      = resolveDependency(artifact)
+        val output = r.mkString("\n")
+        FileUtils.writeTextFile(targetDir, s"$artifact.classpath", output)
+        s"$targetDir/$artifact.classpath"
+      }
+    } else Nil
   }
 
   def resolveDependency(dependency: String): Seq[File] = resolve(toDependency(dependency))

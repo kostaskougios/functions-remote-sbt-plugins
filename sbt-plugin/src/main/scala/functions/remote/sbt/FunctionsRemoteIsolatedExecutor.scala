@@ -9,8 +9,10 @@ import org.apache.commons.io.output.ByteArrayOutputStream
 import java.net.URLClassLoader
 
 class FunctionsRemoteIsolatedExecutor(coursierResolver: CoursierResolver) {
+  def resolve(deps: Seq[String]): Seq[String] = coursierResolver.createDependenciesForArtifacts(deps)
+
   def generateCaller(p: SbtCallerParams): String = {
-    coursierResolver.createDependenciesForArtifacts(Seq(p.exportDependency))
+    resolve(Seq(p.exportDependency))
     isolatedLoadAndApply[String](
       "functions.proxygenerator.sbt.SbtCaller",
       toByteArray(p)
@@ -18,7 +20,7 @@ class FunctionsRemoteIsolatedExecutor(coursierResolver: CoursierResolver) {
   }
 
   def generateReceiver(p: SbtReceiverParams): String = {
-    coursierResolver.createDependenciesForArtifacts(Seq(p.exportDependency))
+    resolve(Seq(p.exportDependency))
     isolatedLoadAndApply[String](
       "functions.proxygenerator.sbt.SbtReceiver",
       toByteArray(p)

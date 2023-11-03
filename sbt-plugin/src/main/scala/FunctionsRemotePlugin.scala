@@ -10,11 +10,12 @@ object FunctionsRemotePlugin extends AutoPlugin {
 
   object autoImport {
     object functionsRemoteCaller {
-      val exports               = settingKey[Seq[String]]("Add all exports that you need callers to be generated")
-      val avroSerialization     = settingKey[Boolean]("Set to true to generate Avro serializers")
-      val jsonSerialization     = settingKey[Boolean]("Set to true to generate Json serializers")
-      val classloaderTransport  = settingKey[Boolean]("Set to true to generate a transport that uses an isolated class loader to load and execute functions")
-      val http4sClientTransport = settingKey[Boolean]("Set to true to generate a transport using an http4s client")
+      val exports                 = settingKey[Seq[String]]("Add all exports that you need callers to be generated")
+      val avroSerialization       = settingKey[Boolean]("Set to true to generate Avro serializers")
+      val jsonSerialization       = settingKey[Boolean]("Set to true to generate Json serializers")
+      val classloaderTransport    = settingKey[Boolean]("Set to true to generate a transport that uses an isolated class loader to load and execute functions")
+      val classloaderDependencies = settingKey[Seq[String]]("All dependencies (impl of functions) that the classloader transport needs to execute")
+      val http4sClientTransport   = settingKey[Boolean]("Set to true to generate a transport using an http4s client")
     }
 
     object functionsRemoteReceiver {
@@ -32,16 +33,17 @@ object FunctionsRemotePlugin extends AutoPlugin {
 
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
     // caller
-    functionsRemoteCaller.exports               := Nil,
-    functionsRemoteCaller.avroSerialization     := false,
-    functionsRemoteCaller.jsonSerialization     := false,
-    functionsRemoteCaller.classloaderTransport  := false,
-    functionsRemoteCaller.http4sClientTransport := false,
+    functionsRemoteCaller.exports                 := Nil,
+    functionsRemoteCaller.avroSerialization       := false,
+    functionsRemoteCaller.jsonSerialization       := false,
+    functionsRemoteCaller.classloaderTransport    := false,
+    functionsRemoteCaller.classloaderDependencies := Nil,
+    functionsRemoteCaller.http4sClientTransport   := false,
     // receiver
-    functionsRemoteReceiver.exports             := Nil,
-    functionsRemoteReceiver.avroSerialization   := false,
-    functionsRemoteReceiver.jsonSerialization   := false,
-    functionsRemoteReceiver.http4sRoutes        := false,
+    functionsRemoteReceiver.exports               := Nil,
+    functionsRemoteReceiver.avroSerialization     := false,
+    functionsRemoteReceiver.jsonSerialization     := false,
+    functionsRemoteReceiver.http4sRoutes          := false,
     // source directories for generated files
     Compile / unmanagedSourceDirectories ++= {
       val base = baseDirectory.value
@@ -52,7 +54,7 @@ object FunctionsRemotePlugin extends AutoPlugin {
     // clean does clean generated source dirs
     cleanFiles += baseDirectory.value / "src" / "main" / "functions-remote-generated",
     // generate source files as per configuration of a project
-    functionsRemoteGenerate                     := {
+    functionsRemoteGenerate                       := {
       val executor  = FunctionsRemoteIsolatedExecutor.Instance
       val base      = baseDirectory.value
       val s         = streams.value
@@ -71,6 +73,7 @@ object FunctionsRemotePlugin extends AutoPlugin {
             )
           )
         }
+        executor.resolve(functionsRemoteCaller.classloaderDependencies.value)
         for (exp <- functionsRemoteReceiver.exports.value) {
           s.log.info(s"Generating receiver for $exp")
           executor.generateReceiver(
@@ -89,7 +92,7 @@ object FunctionsRemotePlugin extends AutoPlugin {
         )
     },
     // create a dependency file under ~/.functions-remote-config
-    functionsRemoteCreateDependenciesFile       := {
+    functionsRemoteCreateDependenciesFile         := {
       val s        = streams.value
       val org      = organization.value
       val sv       = scalaBinaryVersion.value
@@ -101,7 +104,7 @@ object FunctionsRemotePlugin extends AutoPlugin {
       functions.coursier.Resolver.createDependenciesForArtifact(artifact)
     },
     // compile should generate code where appropriate
-    Compile / compile                           := (Compile / compile dependsOn functionsRemoteGenerate).value
+    Compile / compile                             := (Compile / compile dependsOn functionsRemoteGenerate).value
     // hook into publishLocal so that after publishing we create functions-remote dependency file
 //    publishLocal                                := Def.taskDyn {
 //      val s  = streams.value

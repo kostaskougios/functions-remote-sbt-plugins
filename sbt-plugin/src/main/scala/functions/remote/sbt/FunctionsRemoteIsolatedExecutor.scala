@@ -2,7 +2,7 @@ package functions.remote.sbt
 
 import com.sksamuel.avro4s.{AvroOutputStream, Encoder}
 import functions.coursier.CoursierResolver
-import functions.proxygenerator.sbt.SbtCallerParams
+import functions.proxygenerator.sbt.{SbtCallerParams, SbtReceiverParams}
 import functions.remote.utils.ClassLoaderUtils
 import org.apache.commons.io.output.ByteArrayOutputStream
 
@@ -13,6 +13,14 @@ class FunctionsRemoteIsolatedExecutor(coursierResolver: CoursierResolver) {
     coursierResolver.createDependenciesForArtifacts(Seq(p.exportDependency))
     isolatedLoadAndApply[String](
       "functions.proxygenerator.sbt.SbtCaller",
+      toByteArray(p)
+    )
+  }
+
+  def generateReceiver(p: SbtReceiverParams): String = {
+    coursierResolver.createDependenciesForArtifacts(Seq(p.exportDependency))
+    isolatedLoadAndApply[String](
+      "functions.proxygenerator.sbt.SbtReceiver",
       toByteArray(p)
     )
   }

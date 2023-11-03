@@ -53,34 +53,40 @@ object FunctionsRemotePlugin extends AutoPlugin {
     cleanFiles += baseDirectory.value / "src" / "main" / "functions-remote-generated",
     // generate source files as per configuration of a project
     functionsRemoteGenerate                     := {
-      val executor = FunctionsRemoteIsolatedExecutor.Instance
-      val base     = baseDirectory.value
-      val s        = streams.value
-      for (exp <- functionsRemoteCaller.exports.value) {
-        s.log.info(s"Generating caller for $exp")
-        executor.generateCaller(
-          SbtCallerParams(
-            avroSerialization = functionsRemoteCaller.avroSerialization.value,
-            jsonSerialization = functionsRemoteCaller.jsonSerialization.value,
-            classloaderTransport = functionsRemoteCaller.classloaderTransport.value,
-            http4sClientTransport = functionsRemoteCaller.http4sClientTransport.value,
-            targetDir = (base / "src" / "main" / "functions-remote-generated").getAbsolutePath,
-            exportDependency = exp
+      val executor  = FunctionsRemoteIsolatedExecutor.Instance
+      val base      = baseDirectory.value
+      val s         = streams.value
+      val targetDir = base / "src" / "main" / "functions-remote-generated"
+      if (!targetDir.exists() || targetDir.list().isEmpty) {
+        for (exp <- functionsRemoteCaller.exports.value) {
+          s.log.info(s"Generating caller for $exp")
+          executor.generateCaller(
+            SbtCallerParams(
+              avroSerialization = functionsRemoteCaller.avroSerialization.value,
+              jsonSerialization = functionsRemoteCaller.jsonSerialization.value,
+              classloaderTransport = functionsRemoteCaller.classloaderTransport.value,
+              http4sClientTransport = functionsRemoteCaller.http4sClientTransport.value,
+              targetDir = targetDir.getAbsolutePath,
+              exportDependency = exp
+            )
           )
-        )
-      }
-      for (exp <- functionsRemoteReceiver.exports.value) {
-        s.log.info(s"Generating receiver for $exp")
-        executor.generateReceiver(
-          SbtReceiverParams(
-            avroSerialization = functionsRemoteReceiver.avroSerialization.value,
-            jsonSerialization = functionsRemoteReceiver.jsonSerialization.value,
-            http4sRoutes = functionsRemoteReceiver.http4sRoutes.value,
-            targetDir = (base / "src" / "main" / "functions-remote-generated").getAbsolutePath,
-            exportDependency = exp
+        }
+        for (exp <- functionsRemoteReceiver.exports.value) {
+          s.log.info(s"Generating receiver for $exp")
+          executor.generateReceiver(
+            SbtReceiverParams(
+              avroSerialization = functionsRemoteReceiver.avroSerialization.value,
+              jsonSerialization = functionsRemoteReceiver.jsonSerialization.value,
+              http4sRoutes = functionsRemoteReceiver.http4sRoutes.value,
+              targetDir = targetDir.getAbsolutePath,
+              exportDependency = exp
+            )
           )
+        }
+      } else
+        s.log.info(
+          "functions-remote: Won't generate code to speed up compilation. Please do an sbt clean or delete all generated classes if you want code to be re-generated"
         )
-      }
     },
     // create a dependency file under ~/.functions-remote-config
     functionsRemoteCreateDependenciesFile       := {

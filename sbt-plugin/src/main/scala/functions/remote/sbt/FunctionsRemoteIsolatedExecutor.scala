@@ -35,21 +35,27 @@ class FunctionsRemoteIsolatedExecutor(coursierResolver: CoursierResolver) {
     bos.toByteArray
   }
 
-  private lazy val generatorClassLoader                                     = {
+  private def generatorClassLoader                                          = {
     val files = coursierResolver.resolveDependency(Artifacts.FunctionsRemoteGeneratorArtifact)
     new URLClassLoader(files.map(_.toURI.toURL).toArray, null)
   }
   private def isolatedLoadAndApply[R](className: String, data: Array[Byte]) = {
-    ClassLoaderUtils.withThreadContextClassLoader(generatorClassLoader) {
-      val sbtCaller =
-        generatorClassLoader
-          .loadClass(className)
-          .getDeclaredConstructor()
-          .newInstance()
-          .asInstanceOf[java.util.function.Function[Array[Byte], R]]
+    // We won't reuse the classloader because the loaded tasty-inspector will load
+    // jars in mem and keep them until sbt exits. This means any updates to the
+    // jars are not loaded if the classloader is the same.
+    val cl = generatorClassLoader
+    try
+      ClassLoaderUtils.withThreadContextClassLoader(cl) {
+        val sbtCaller =
+          cl
+            .loadClass(className)
+            .getDeclaredConstructor()
+            .newInstance()
+            .asInstanceOf[java.util.function.Function[Array[Byte], R]]
 
-      sbtCaller(data)
-    }
+        sbtCaller(data)
+      }
+    finally cl.close()
   }
 }
 

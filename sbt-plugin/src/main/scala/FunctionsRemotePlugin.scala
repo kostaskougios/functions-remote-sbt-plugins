@@ -40,11 +40,13 @@ object FunctionsRemotePlugin extends AutoPlugin {
     callerClassloaderTransport                          := false,
     callerClassloaderDependencies                       := Nil,
     callerHttp4sClientTransport                         := false,
+    callerHelidonClientTransport                        := false,
     // receiver
     receiverExports                                     := Nil,
     receiverAvroSerialization                           := false,
     receiverJsonSerialization                           := false,
     receiverHttp4sRoutes                                := false,
+    receiverHelidonRoutes                               := false,
     // source directories for generated files
     Compile / unmanagedSourceDirectories ++= {
       val base = baseDirectory.value

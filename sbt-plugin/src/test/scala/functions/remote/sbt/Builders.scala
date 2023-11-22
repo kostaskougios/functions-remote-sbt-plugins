@@ -8,6 +8,7 @@ object Builders {
       jsonSerialization: Boolean = false,
       classloaderTransport: Boolean = false,
       http4sClientTransport: Boolean = false,
+      helidonClientTransport: Boolean = false,
       targetDir: String = "/tmp/sbt-caller-test-dir",
       exportDependency: String = ""
   ) = SbtCallerParams(
@@ -15,6 +16,7 @@ object Builders {
     jsonSerialization,
     classloaderTransport,
     http4sClientTransport,
+    helidonClientTransport,
     targetDir,
     exportDependency
   )
@@ -23,12 +25,14 @@ object Builders {
       avroSerialization: Boolean = false,
       jsonSerialization: Boolean = false,
       http4sRoutes: Boolean = false,
+      helidonRoutes: Boolean = false,
       targetDir: String = "/tmp/sbt-receiver-test-dir",
       exportDependency: String = ""
   ) = SbtReceiverParams(
     avroSerialization,
     jsonSerialization,
     http4sRoutes,
+    helidonRoutes,
     targetDir,
     exportDependency
   )

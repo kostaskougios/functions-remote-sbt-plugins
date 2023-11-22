@@ -16,11 +16,13 @@ object FunctionsRemotePlugin extends AutoPlugin {
       settingKey[Boolean]("Set to true to generate a transport that uses an isolated class loader to load and execute functions")
     val callerClassloaderDependencies = settingKey[Seq[String]]("All dependencies (impl of functions) that the classloader transport needs to execute")
     val callerHttp4sClientTransport   = settingKey[Boolean]("Set to true to generate a transport using an http4s client")
+    val callerHelidonClientTransport  = settingKey[Boolean]("Set to true to generate a transport using a helidon client")
 
     val receiverExports           = settingKey[Seq[String]]("Add all exports that you need receivers to be generated")
     val receiverAvroSerialization = settingKey[Boolean]("Set to true to generate Avro serializers")
     val receiverJsonSerialization = settingKey[Boolean]("Set to true to generate Json serializers")
     val receiverHttp4sRoutes      = settingKey[Boolean]("Set to true to generate code for http4s routes")
+    val receiverHelidonRoutes     = settingKey[Boolean]("Set to true to generate code for helidon routes")
 
     val functionsRemoteCreateDependenciesFile               = taskKey[Unit]("Creates dependency text file under ~/.functions-remote")
     val functionsRemoteResolveCallerClassloaderDependencies =
@@ -67,6 +69,7 @@ object FunctionsRemotePlugin extends AutoPlugin {
               jsonSerialization = callerJsonSerialization.value,
               classloaderTransport = callerClassloaderTransport.value,
               http4sClientTransport = callerHttp4sClientTransport.value,
+              helidonClientTransport = callerHelidonClientTransport.value,
               targetDir = targetDir.getAbsolutePath,
               exportDependency = exp
             )
@@ -79,6 +82,7 @@ object FunctionsRemotePlugin extends AutoPlugin {
               avroSerialization = receiverAvroSerialization.value,
               jsonSerialization = receiverJsonSerialization.value,
               http4sRoutes = receiverHttp4sRoutes.value,
+              helidonRoutes = receiverHelidonRoutes.value,
               targetDir = targetDir.getAbsolutePath,
               exportDependency = exp
             )

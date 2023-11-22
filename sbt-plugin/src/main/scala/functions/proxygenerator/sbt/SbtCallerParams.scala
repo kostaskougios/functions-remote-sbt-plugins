@@ -5,6 +5,7 @@ case class SbtCallerParams(
     jsonSerialization: Boolean,
     classloaderTransport: Boolean,
     http4sClientTransport: Boolean,
+    helidonClientTransport: Boolean,
     targetDir: String,
     exportDependency: String
 )

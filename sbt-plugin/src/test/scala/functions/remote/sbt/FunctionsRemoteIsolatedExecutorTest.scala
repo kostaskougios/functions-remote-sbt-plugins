@@ -19,6 +19,7 @@ class FunctionsRemoteIsolatedExecutorTest extends AnyFunSuiteLike {
         jsonSerialization = true,
         classloaderTransport = true,
         http4sClientTransport = true,
+        helidonClientTransport = true,
         exportDependency = TestExport
       )
     ) should be("OK")
@@ -30,6 +31,7 @@ class FunctionsRemoteIsolatedExecutorTest extends AnyFunSuiteLike {
         avroSerialization = true,
         jsonSerialization = true,
         http4sRoutes = true,
+        helidonRoutes = true,
         exportDependency = TestExport
       )
     )

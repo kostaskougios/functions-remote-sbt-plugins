@@ -63,32 +63,38 @@ object FunctionsRemotePlugin extends AutoPlugin {
       val s         = streams.value
       val targetDir = base / "src" / "main" / "functions-remote-generated"
       if (!targetDir.exists() || targetDir.list().isEmpty) {
-        for (exp <- callerExports.value) {
-          s.log.info(s"Generating caller for $exp")
-          executor.generateCaller(
-            SbtCallerParams(
-              avroSerialization = callerAvroSerialization.value,
-              jsonSerialization = callerJsonSerialization.value,
-              classloaderTransport = callerClassloaderTransport.value,
-              http4sClientTransport = callerHttp4sClientTransport.value,
-              helidonClientTransport = callerHelidonClientTransport.value,
-              targetDir = targetDir.getAbsolutePath,
-              exportDependency = exp
+        try {
+          for (exp <- callerExports.value) {
+            s.log.info(s"Generating caller for $exp")
+            executor.generateCaller(
+              SbtCallerParams(
+                avroSerialization = callerAvroSerialization.value,
+                jsonSerialization = callerJsonSerialization.value,
+                classloaderTransport = callerClassloaderTransport.value,
+                http4sClientTransport = callerHttp4sClientTransport.value,
+                helidonClientTransport = callerHelidonClientTransport.value,
+                targetDir = targetDir.getAbsolutePath,
+                exportDependency = exp
+              )
             )
-          )
-        }
-        for (exp <- receiverExports.value) {
-          s.log.info(s"Generating receiver for $exp")
-          executor.generateReceiver(
-            SbtReceiverParams(
-              avroSerialization = receiverAvroSerialization.value,
-              jsonSerialization = receiverJsonSerialization.value,
-              http4sRoutes = receiverHttp4sRoutes.value,
-              helidonRoutes = receiverHelidonRoutes.value,
-              targetDir = targetDir.getAbsolutePath,
-              exportDependency = exp
+          }
+          for (exp <- receiverExports.value) {
+            s.log.info(s"Generating receiver for $exp")
+            executor.generateReceiver(
+              SbtReceiverParams(
+                avroSerialization = receiverAvroSerialization.value,
+                jsonSerialization = receiverJsonSerialization.value,
+                http4sRoutes = receiverHttp4sRoutes.value,
+                helidonRoutes = receiverHelidonRoutes.value,
+                targetDir = targetDir.getAbsolutePath,
+                exportDependency = exp
+              )
             )
-          )
+          }
+        } catch {
+          case t: Throwable =>
+            s.log.err("An error occurred")
+            t.printStackTrace()
         }
       } else
         s.log.info(

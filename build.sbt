@@ -20,6 +20,5 @@ lazy val `functions-remote-sbt-plugin` = project
 
 lazy val `functions-remote-sbt-plugin-coursier` = project
   .settings(
-    libraryDependencies ++= Seq(Coursier, ScalaTest),
-    Compile / packageDoc / publishArtifact := false
+    libraryDependencies ++= Seq(Coursier, ScalaTest)
   )

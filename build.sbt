@@ -1,4 +1,4 @@
-ThisBuild / version := "0.1"
+ThisBuild / version := "0.51"
 
 ThisBuild / organization := "io.github.kostaskougios"
 
